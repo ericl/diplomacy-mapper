@@ -13,7 +13,6 @@ def line(draw, c, width=1, fill='#ffffff'):
         dx, dy = 0, i-width/2
         draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
     for i in xrange(1, width+1):
-        x = math.atan2(y, x)
         dx, dy = i-width/2, 0
         draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
 
