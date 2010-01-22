@@ -1,0 +1,308 @@
+#!/usr/bin/env python
+
+from PIL import Image, ImageDraw
+
+from data import *
+
+import math
+
+def line(draw, c, width=1, fill='#ffffff'):
+    x = c[2] - c[0]
+    y = c[3] - c[1]
+    for i in xrange(1, width+1):
+        dx, dy = 0, i-width/2
+        draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
+    for i in xrange(1, width+1):
+        x = math.atan2(y, x)
+        dx, dy = i-width/2, 0
+        draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
+
+def arrow(img, oldcoord, coord, color):
+    draw = ImageDraw.Draw(img)
+    x = coord[0] - oldcoord[0]
+    y = coord[1] - oldcoord[1]
+    length = math.sqrt(x**2 + y**2)
+    ux = x / length
+    uy = y / length
+    x = ux * -20
+    y = uy * -20
+    coord = (coord[0] - ux*3, coord[1] - uy*3)
+    x1 = math.cos(.5) * x - math.sin(.5) * y
+    y1 = math.sin(.5) * x + math.cos(.5) * y
+    x2 = math.cos(-.5) * x - math.sin(-.5) * y
+    y2 = math.sin(-.5) * x + math.cos(-.5) * y
+    line(draw, oldcoord + coord, width=3, fill=color)
+    line(draw, coord + (x1+coord[0], y1+coord[1]), width=3, fill=color)
+    line(draw, coord + (x2+coord[0], y2+coord[1]), width=3, fill=color)
+
+def Tarrow(img, oldcoord, coord, color):
+    draw = ImageDraw.Draw(img)
+    line(draw, oldcoord + coord, width=3, fill=color)
+    x = coord[0] - oldcoord[0]
+    y = coord[1] - oldcoord[1]
+    mx, my = midpoint(coord, (midpoint(coord, oldcoord)))
+    length = math.sqrt(x**2 + y**2) / 10
+    x /= -length
+    y /= -length
+    x1 = math.cos(1.57) * x - math.sin(1.57) * y
+    y1 = math.sin(1.57) * x + math.cos(1.57) * y
+    x2 = math.cos(-1.57) * x - math.sin(-1.57) * y
+    y2 = math.sin(-1.57) * x + math.cos(-1.57) * y
+    orig = (x+mx, y+my)
+    line(draw, orig + (x1+orig[0], y1+orig[1]), width=3, fill=color)
+    line(draw, orig + (x2+orig[0], y2+orig[1]), width=3, fill=color)
+
+def drawX(img, oldcoord, coord, color):
+    draw = ImageDraw.Draw(img)
+    x = coord[0] - oldcoord[0]
+    y = coord[1] - oldcoord[1]
+    mx, my = midpoint(coord, oldcoord)
+    length = math.sqrt(x**2 + y**2) / 12
+    x /= -length
+    y /= -length
+    x1 = math.cos(.785) * x - math.sin(.785) * y
+    y1 = math.sin(.785) * x + math.cos(.785) * y
+    x2 = math.cos(-.785) * x - math.sin(-.785) * y
+    y2 = math.sin(-.785) * x + math.cos(-.785) * y
+    orig = (x+mx, y+my)
+    line(draw, orig + (x1+orig[0], y1+orig[1]), width=5, fill=color)
+    line(draw, orig + (x2+orig[0], y2+orig[1]), width=5, fill=color)
+    line(draw, orig + (-x1+orig[0], -y1+orig[1]), width=5, fill=color)
+    line(draw, orig + (-x2+orig[0], -y2+orig[1]), width=5, fill=color)
+
+def write_substitution_image(file, out, table):
+    img = Image.open(file).convert('RGBA')
+    img_army = Image.open(IMAGE_ARMY).convert('RGBA')
+    img_fleet = Image.open(IMAGE_FLEET).convert('RGBA')
+    mask = Image.open('data/mask.png').convert('RGBA')
+    outline = Image.open('data/outline.png').convert('RGBA')
+    buf = []
+    def withoutalpha(c):
+        return (c[0], c[1], c[2])
+    def withalpha(c):
+        return (c[0], c[1], c[2], 255)
+    for color in img.getdata():
+        noalpha = withoutalpha(color)
+        if noalpha in table:
+            buf.append(table[noalpha])
+        else:
+            buf.append(color)
+    img.putdata(buf)
+    for line in yellow:
+        oldcoord = line[0]
+        coord = line[1]
+        arrow(img, oldcoord, coord, '#fcd116')
+    for line in lines:
+        oldcoord = line[0]
+        coord = line[1]
+        arrow(img, oldcoord, coord, '#aa0000')
+    for line in green:
+        oldcoord = line[0]
+        coord = line[1]
+        Tarrow(img, oldcoord, coord, '#00dd00')
+    for line in convoy_arrows:
+        oldcoord = line[0]
+        coord = line[1]
+        arrow(img, oldcoord, coord, '#22aadd')
+    for line in purple:
+        oldcoord = line[0]
+        coord = line[1]
+        arrow(img, oldcoord, coord, '#ff00ff')
+    for x in failed:
+        drawX(img, x[0], x[1], '#aa0000')
+    for dis in ldisband:
+        x = Image.open('data/dis.png').convert('RGBA')
+        coord = DIP[dis][INDEX_COORD]
+        coord = (coord[0]+10, coord[1])
+        img.paste(x, coord, x)
+    for army in armies:
+        coord = DIP[army[0]][INDEX_COORD]
+        land_owner = get(army[0])
+        army_owner = army[1][0]
+        unit_img = img_army
+        if land_owner != army_owner:
+            img.paste(outline, (coord[0], coord[1]-15), outline)
+            img.paste(army[1][1], (coord[0]+1, coord[1]-14), mask)
+        img.paste(unit_img, coord, unit_img)
+    for fleet in fleets:
+        coord = DIP[fleet[0]][INDEX_COORD]
+        land_owner = get(fleet[0])
+        fleet_owner = fleet[1][0]
+        unit_img = img_fleet
+        if land_owner != fleet_owner:
+            img.paste(outline, (coord[0], coord[1]-15), outline)
+            img.paste(fleet[1][1], (coord[0]+1, coord[1]-14), mask)
+        img.paste(unit_img, coord, unit_img)
+    for loc in create_army:
+        star = Image.open('data/star.png').convert('RGBA')
+        coord = DIP[loc][INDEX_COORD]
+        img.paste(star, (coord[0]+15, coord[1]-13), star)
+    for loc in create_fleet:
+        star = Image.open('data/star.png').convert('RGBA')
+        coord = DIP[loc][INDEX_COORD]
+        img.paste(star, (coord[0]+15, coord[1]-8), star)
+    text = Image.open(IMAGE_NAMES).convert('RGBA')
+    img.paste(text, text)
+    img.save(out, 'PNG')
+
+ENGLAND = ('ENG', COLOR_ENGLAND)
+RUSSIA = ('RUS', COLOR_RUSSIA)
+FRANCE = ('FRA', COLOR_FRANCE)
+ITALY = ('ITA', COLOR_ITALY)
+TURKEY = ('TUR', COLOR_TURKEY)
+GERMANY = ('GER', COLOR_GERMANY)
+AUSTRIA = ('AUS', COLOR_AUSTRIA)
+N_COLOR = 1
+N_NAME = 0
+
+init = {}
+armies = []
+create_army = []
+create_fleet = []
+fleets = []
+failed = []
+convoy_arrows = []
+lines = []
+purple = []
+yellow = []
+green = []
+land = {}
+ldisband = []
+
+def midpoint(a, b):
+    return ((a[0]+b[0])/2, (a[1]+b[1])/2)
+
+def unit_coords(t):
+    a = DIP[t][INDEX_COORD]
+    return (a[0]+13, a[1]+8)
+
+def set_color(t, color, nation=None):
+    x = DIP[t]
+    assert not x[INDEX_OCEAN]
+    init[x[INDEX_COLOR]] = color
+
+def get(t):
+    return land[t][0] if t in land else None
+
+def set(t, nation):
+    x = DIP[t]
+    land[t] = nation
+    if not x[INDEX_OCEAN]:
+        init[x[INDEX_COLOR]] = nation[N_COLOR]
+
+def army_convoy(t, t2, dest, nation):
+    army_hold(dest, nation)
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    convoy_arrows.append((orig, dest))
+
+def fleet_convoy(t, t2, nation):
+    fleet_hold(t, nation)
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    convoy_arrows.append((orig, dest))
+
+def army_hold(t, nation):
+    assert t in DIP
+    armies.append((t, nation))
+
+def army_create(t, nation):
+    create_army.append(t)
+    armies.append((t, nation))
+
+def fleet_create(t, nation):
+    create_fleet.append(t)
+    fleets.append((t, nation))
+
+def disband(t):
+    ldisband.append(t)
+
+def fleet_support_move(t, other, t2, nation):
+    other = unit_coords(other)
+    dest = unit_coords(t2)
+    dest = midpoint(dest, midpoint(other, dest))
+    orig = unit_coords(t)
+    yellow.append((orig, dest))
+    fleet_hold(t, nation)
+
+def army_support_move(t, other, t2, nation):
+    other = unit_coords(other)
+    dest = unit_coords(t2)
+    dest = midpoint(dest, midpoint(other, dest))
+    orig = unit_coords(t)
+    yellow.append((orig, dest))
+    army_hold(t, nation)
+
+def fleet_retreat(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    purple.append((orig, dest))
+    fleet_hold(t2, nation)
+
+def army_retreat(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    purple.append((orig, dest))
+    army_hold(t2, nation)
+
+def fleet_support_hold(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    green.append((orig, dest))
+    fleet_hold(t, nation)
+
+def army_support_hold(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    green.append((orig, dest))
+    army_hold(t, nation)
+
+def army_move(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    lines.append((orig, dest))
+    army_hold(t2, nation)
+
+def fleet_move(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    lines.append((orig, dest))
+    fleet_hold(t2, nation)
+
+def fleet_move_failed(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    lines.append((orig, dest))
+    failed.append((orig, dest))
+    fleet_hold(t, nation)
+
+def army_move_failed(t, t2, nation):
+    dest = unit_coords(t2)
+    orig = unit_coords(t)
+    lines.append((orig, dest))
+    failed.append((orig, dest))
+    army_hold(t, nation)
+
+def fleet_hold(t, nation):
+    assert t in DIP
+    fleets.append((t, nation))
+
+for t in UNALIGNED:
+    set_color(t, COLOR_NEUTRAL, None)
+for t in DEFAULT_ENGLAND:
+    set(t, ENGLAND)
+for t in DEFAULT_GERMANY:
+    set(t, GERMANY)
+for t in DEFAULT_FRANCE:
+    set(t, FRANCE)
+for t in DEFAULT_ITALY:
+    set(t, ITALY)
+for t in DEFAULT_AUSTRIA:
+    set(t, AUSTRIA)
+for t in DEFAULT_TURKEY:
+    set(t, TURKEY)
+for t in DEFAULT_RUSSIA:
+    set(t, RUSSIA)
+
+def done():
+    write_substitution_image(IMAGE_MAP, 'out.png', init)
