@@ -80,13 +80,18 @@ def write_substitution_image(file, out, table):
         return (c[0], c[1], c[2])
     def withalpha(c):
         return (c[0], c[1], c[2], 255)
+    i = 0
     for color in img.getdata():
         noalpha = withoutalpha(color)
+        i += 1
+        if i % 2**17 == 0:
+            print '%i pixels filled' % i
         if noalpha in table:
             buf.append(table[noalpha])
         else:
             buf.append(color)
     img.putdata(buf)
+    print 'drawing movements...'
     for line in yellow:
         oldcoord = line[0]
         coord = line[1]
@@ -114,6 +119,7 @@ def write_substitution_image(file, out, table):
         coord = DIP[dis][INDEX_COORD]
         coord = (coord[0]+10, coord[1])
         img.paste(x, coord, x)
+    print 'drawing units...'
     for army in armies:
         coord = DIP[army[0]][INDEX_COORD]
         land_owner = get(army[0])

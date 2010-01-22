@@ -2,6 +2,8 @@
 
 from map import *
 
+# EXAMPLE CODE BELOW
+
 fleet_move('nor', 'nwy', ENGLAND)
 set('nwy', ENGLAND)
 fleet_move_failed('nth', 'bel', ENGLAND)

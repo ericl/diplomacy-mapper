@@ -1,0 +1,48 @@
+Quick-and-dirty diplomacy map maker.
+
+This program uses the excellent map from webdiplomacy,
+and so falls under the same license it does.
+
+Usage:
+
+	The following sequence of commands in python:
+		from map import *
+		[commands]
+		done()
+	will write a file called 'out.png' in this directory.
+
+	Run 'run.py' to see an example rendering.
+
+Example command sequence:
+
+	fleet_move('nor', 'nwy', ENGLAND)
+	set('nwy', ENGLAND)
+	fleet_move_failed('nth', 'bel', ENGLAND)
+	army_hold('yor', ENGLAND)
+	fleet_support_hold('iri', 'nao', ENGLAND)
+	fleet_support_hold('nao', 'iri', ENGLAND)
+	
+All location and nation names can be found in 'data.py'.
+
+List of commands:
+
+	set(loc, nation)
+	disband(loc)
+
+	fleet_create(loc, NATION)
+	fleet_hold(loc, NATION)
+	fleet_move(loc, dest, NATION)
+	fleet_retreat(loc, dest, NATION)
+	fleet_move_failed(loc, dest, NATION)
+	fleet_support_hold(loc, dest, NATION)
+	fleet_support_move(loc, attacker, dest, NATION)
+	fleet_convoy(loc, next, NATION)
+
+	army_create(loc, NATION)
+	army_hold(loc, NATION)
+	army_move(loc, dest, NATION)
+	army_retreat(loc, dest, NATION)
+	army_move_failed(loc, dest, NATION)
+	army_support_hold(loc, dest, NATION)
+	army_support_move(loc, attacker, dest, NATION)
+	army_convoy(loc, next, dest, NATION)
