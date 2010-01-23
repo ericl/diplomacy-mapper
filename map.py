@@ -16,7 +16,8 @@ def line(draw, c, width=1, fill='#ffffff'):
         dx, dy = i-width/2, 0
         draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
 
-def arrow(img, oldcoord, coord, color):
+def arrow(img, oldcoord, coord, color, noarrow=False, extrawidth=0):
+    w = 3 + extrawidth
     draw = ImageDraw.Draw(img)
     x = coord[0] - oldcoord[0]
     y = coord[1] - oldcoord[1]
@@ -30,9 +31,10 @@ def arrow(img, oldcoord, coord, color):
     y1 = math.sin(.5) * x + math.cos(.5) * y
     x2 = math.cos(-.5) * x - math.sin(-.5) * y
     y2 = math.sin(-.5) * x + math.cos(-.5) * y
-    line(draw, oldcoord + coord, width=3, fill=color)
-    line(draw, coord + (x1+coord[0], y1+coord[1]), width=3, fill=color)
-    line(draw, coord + (x2+coord[0], y2+coord[1]), width=3, fill=color)
+    line(draw, oldcoord + coord, width=w, fill=color)
+    if not noarrow:
+        line(draw, coord + (x1+coord[0], y1+coord[1]), width=w, fill=color)
+        line(draw, coord + (x2+coord[0], y2+coord[1]), width=w, fill=color)
 
 def Tarrow(img, oldcoord, coord, color):
     draw = ImageDraw.Draw(img)
@@ -96,18 +98,19 @@ def write_substitution_image(file, out, table):
         oldcoord = line[0]
         coord = line[1]
         arrow(img, oldcoord, coord, '#fcd116')
+    for line in blue:
+        oldcoord = line[0]
+        coord = line[1]
+        arrow(img, oldcoord, coord, '#22aadd', noarrow=True)
     for line in lines:
         oldcoord = line[0]
         coord = line[1]
-        arrow(img, oldcoord, coord, '#aa0000')
+        s = support.get(line[2], 0)
+        arrow(img, oldcoord, coord, '#aa0000', extrawidth=s)
     for line in green:
         oldcoord = line[0]
         coord = line[1]
         Tarrow(img, oldcoord, coord, '#00dd00')
-    for line in convoy_arrows:
-        oldcoord = line[0]
-        coord = line[1]
-        arrow(img, oldcoord, coord, '#22aadd')
     for line in purple:
         oldcoord = line[0]
         coord = line[1]
@@ -166,13 +169,20 @@ create_army = []
 create_fleet = []
 fleets = []
 failed = []
-convoy_arrows = []
+blue = []
 lines = []
 purple = []
 yellow = []
 green = []
 land = {}
 ldisband = []
+support = {}
+
+def enhance(loc):
+    if loc in support:
+        support[loc] += 1
+    else:
+        support[loc] = 1
 
 def midpoint(a, b):
     return ((a[0]+b[0])/2, (a[1]+b[1])/2)
@@ -195,18 +205,6 @@ def set(t, nation):
     if not x[INDEX_OCEAN]:
         init[x[INDEX_COLOR]] = nation[N_COLOR]
 
-def army_convoy(t, t2, dest, nation):
-    army_hold(dest, nation)
-    dest = unit_coords(t2)
-    orig = unit_coords(t)
-    convoy_arrows.append((orig, dest))
-
-def fleet_convoy(t, t2, nation):
-    fleet_hold(t, nation)
-    dest = unit_coords(t2)
-    orig = unit_coords(t)
-    convoy_arrows.append((orig, dest))
-
 def army_hold(t, nation):
     assert t in DIP
     armies.append((t, nation))
@@ -223,6 +221,7 @@ def disband(t):
     ldisband.append(t)
 
 def fleet_support_move(t, other, t2, nation):
+    enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
     dest = midpoint(dest, midpoint(other, dest))
@@ -230,7 +229,17 @@ def fleet_support_move(t, other, t2, nation):
     yellow.append((orig, dest))
     fleet_hold(t, nation)
 
+def fleet_convoy(t, other, t2, nation):
+    other = unit_coords(other)
+    dest = unit_coords(t2)
+    mp = midpoint(other, dest)
+    dest = midpoint(mp, midpoint(dest, midpoint(other, dest)))
+    orig = unit_coords(t)
+    blue.append((orig, dest))
+    fleet_hold(t, nation)
+
 def army_support_move(t, other, t2, nation):
+    enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
     dest = midpoint(dest, midpoint(other, dest))
@@ -265,27 +274,27 @@ def army_support_hold(t, t2, nation):
 def army_move(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
-    lines.append((orig, dest))
+    lines.append((orig, dest, t2))
     army_hold(t2, nation)
 
 def fleet_move(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
-    lines.append((orig, dest))
+    lines.append((orig, dest, t2))
     fleet_hold(t2, nation)
 
 def fleet_move_failed(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
-    lines.append((orig, dest))
-    failed.append((orig, dest))
+    lines.append((orig, dest, t2))
+    failed.append((orig, dest, t2))
     fleet_hold(t, nation)
 
 def army_move_failed(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
-    lines.append((orig, dest))
-    failed.append((orig, dest))
+    lines.append((orig, dest, t2))
+    failed.append((orig, dest, t2))
     army_hold(t, nation)
 
 def fleet_hold(t, nation):
