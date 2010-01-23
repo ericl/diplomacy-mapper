@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from PIL import Image, ImageDraw
+import Image, ImageDraw
 
 from data import *
 
@@ -175,6 +175,7 @@ purple = []
 yellow = []
 green = []
 land = {}
+occupied = set()
 ldisband = []
 support = {}
 
@@ -183,6 +184,12 @@ def enhance(loc):
         support[loc] += 1
     else:
         support[loc] = 1
+
+def occupy(loc):
+    assert loc in DIP
+    loc = loc[:3]
+    assert loc not in occupied
+    occupied.add(loc)
 
 def midpoint(a, b):
     return ((a[0]+b[0])/2, (a[1]+b[1])/2)
@@ -208,14 +215,17 @@ def set(t, nation):
 def army_hold(t, nation):
     assert t in DIP
     armies.append((t, nation))
+    occupy(t)
 
 def army_create(t, nation):
     create_army.append(t)
     armies.append((t, nation))
+    occupy(t)
 
 def fleet_create(t, nation):
     create_fleet.append(t)
     fleets.append((t, nation))
+    occupy(t)
 
 def disband(t):
     ldisband.append(t)
@@ -298,8 +308,8 @@ def army_move_failed(t, t2, nation):
     army_hold(t, nation)
 
 def fleet_hold(t, nation):
-    assert t in DIP
     fleets.append((t, nation))
+    occupy(t)
 
 for t in UNALIGNED:
     set_color(t, COLOR_NEUTRAL, None)
