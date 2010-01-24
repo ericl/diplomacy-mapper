@@ -4,8 +4,8 @@ from map import *
 
 # EXAMPLE CODE BELOW
 
-fleet_move('nor', 'nwy', ENGLAND)
-set('nwy', ENGLAND)
+fleet_move('nwg', 'nor', ENGLAND)
+set('nor', ENGLAND)
 fleet_convoy('nth', 'yor', 'bel', ENGLAND)
 army_move('yor', 'bel', ENGLAND)
 fleet_support_hold('iri', 'nao', ENGLAND)

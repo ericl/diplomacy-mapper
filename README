@@ -36,7 +36,7 @@ List of commands:
 	fleet_move_failed(loc, dest, NATION)
 	fleet_support_hold(loc, dest, NATION)
 	fleet_support_move(loc, attacker, dest, NATION)
-	fleet_convoy(loc, next, NATION)
+	fleet_convoy(loc, attacker, dest, NATION)
 
 	army_create(loc, NATION)
 	army_hold(loc, NATION)
@@ -45,4 +45,3 @@ List of commands:
 	army_move_failed(loc, dest, NATION)
 	army_support_hold(loc, dest, NATION)
 	army_support_move(loc, attacker, dest, NATION)
-	army_convoy(loc, next, dest, NATION)

@@ -179,6 +179,22 @@ occupied = set()
 ldisband = []
 support = {}
 
+def lcheck(f):
+    def g(*args):
+        for loc in args:
+            if type(loc) == type('str'):
+                if loc not in DIP:
+                    print "'%s' is an invalid location." % loc
+                    if len(loc) > 0:
+                        print 'Suggestions:'
+                        c = loc[0]
+                        for k in DIP:
+                            if k[0] == loc[0]:
+                                print ' ' + k
+                    raise SystemExit
+        return f(*args)
+    return g
+
 def enhance(loc):
     if loc in support:
         support[loc] += 1
@@ -186,9 +202,8 @@ def enhance(loc):
         support[loc] = 1
 
 def occupy(loc):
-    assert loc in DIP
     loc = loc[:3]
-    assert loc not in occupied
+    assert loc not in occupied, "You have already placed a unit at '%s'" % loc
     occupied.add(loc)
 
 def midpoint(a, b):
@@ -198,38 +213,41 @@ def unit_coords(t):
     a = DIP[t][INDEX_COORD]
     return (a[0]+13, a[1]+8)
 
-def set_color(t, color, nation=None):
+def set_color(t, color):
     x = DIP[t]
-    assert not x[INDEX_OCEAN]
+    assert not x[INDEX_OCEAN], "Cannot set color the ocean '%s'" % t
     init[x[INDEX_COLOR]] = color
 
 def get(t):
     return land[t][0] if t in land else None
 
+@lcheck
 def set(t, nation):
     x = DIP[t]
     land[t] = nation
-    if not x[INDEX_OCEAN]:
-        init[x[INDEX_COLOR]] = nation[N_COLOR]
+    set_color(t, nation[N_COLOR])
 
+@lcheck
 def army_hold(t, nation):
-    assert t in DIP
     armies.append((t, nation))
     occupy(t)
 
+@lcheck
 def army_create(t, nation):
     create_army.append(t)
     armies.append((t, nation))
     occupy(t)
 
+@lcheck
 def fleet_create(t, nation):
     create_fleet.append(t)
-    fleets.append((t, nation))
-    occupy(t)
+    fleet_hold(t, nation)
 
+@lcheck
 def disband(t):
     ldisband.append(t)
 
+@lcheck
 def fleet_support_move(t, other, t2, nation):
     enhance(t2)
     other = unit_coords(other)
@@ -239,6 +257,7 @@ def fleet_support_move(t, other, t2, nation):
     yellow.append((orig, dest))
     fleet_hold(t, nation)
 
+@lcheck
 def fleet_convoy(t, other, t2, nation):
     other = unit_coords(other)
     dest = unit_coords(t2)
@@ -248,6 +267,7 @@ def fleet_convoy(t, other, t2, nation):
     blue.append((orig, dest))
     fleet_hold(t, nation)
 
+@lcheck
 def army_support_move(t, other, t2, nation):
     enhance(t2)
     other = unit_coords(other)
@@ -257,42 +277,49 @@ def army_support_move(t, other, t2, nation):
     yellow.append((orig, dest))
     army_hold(t, nation)
 
+@lcheck
 def fleet_retreat(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
     fleet_hold(t2, nation)
 
+@lcheck
 def army_retreat(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
     army_hold(t2, nation)
 
+@lcheck
 def fleet_support_hold(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
     fleet_hold(t, nation)
 
+@lcheck
 def army_support_hold(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
     army_hold(t, nation)
 
+@lcheck
 def army_move(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
     army_hold(t2, nation)
 
+@lcheck
 def fleet_move(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
     fleet_hold(t2, nation)
 
+@lcheck
 def fleet_move_failed(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
@@ -300,6 +327,7 @@ def fleet_move_failed(t, t2, nation):
     failed.append((orig, dest, t2))
     fleet_hold(t, nation)
 
+@lcheck
 def army_move_failed(t, t2, nation):
     dest = unit_coords(t2)
     orig = unit_coords(t)
@@ -307,12 +335,15 @@ def army_move_failed(t, t2, nation):
     failed.append((orig, dest, t2))
     army_hold(t, nation)
 
+@lcheck
 def fleet_hold(t, nation):
     fleets.append((t, nation))
     occupy(t)
+    if len(t) < 4:
+        assert ('%s_nc' % t) not in DIP, 'You need to specify the coast ([loc]_sc or [loc]_nc)'
 
 for t in UNALIGNED:
-    set_color(t, COLOR_NEUTRAL, None)
+    set_color(t, COLOR_NEUTRAL)
 for t in DEFAULT_ENGLAND:
     set(t, ENGLAND)
 for t in DEFAULT_GERMANY:

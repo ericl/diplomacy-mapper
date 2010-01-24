@@ -50,7 +50,7 @@ DIP = {
     'stp': ((0,200,0), False, (966,202)),
     'fin': ((0,150,0), False, (695,226)),
     'swe': ((0,140,0), False, (577,257)),
-    'nwy': ((0,130,0), False, (510,266)),
+    'nor': ((0,130,0), False, (510,266)),
     'den': ((0,120,0), False, (495,409)),
     'war': ((0,210,0), False, (654,541)),
     'sil': ((0,80,0), False, (579,537)),
@@ -92,7 +92,7 @@ DIP = {
     'wes': (COLOR_OCEAN, True, (302,843)),
     'mao': (COLOR_OCEAN, True, (78,577)),
     'nth': (COLOR_OCEAN, True, (403,383)),
-    'nor': (COLOR_OCEAN, True, (427,105)),
+    'nwg': (COLOR_OCEAN, True, (427,105)),
     'ska': (COLOR_OCEAN, True, (501,361)),
     'hel': (COLOR_OCEAN, True, (447,442)),
     'bal': (COLOR_OCEAN, True, (610,428)),
@@ -100,8 +100,8 @@ DIP = {
     'bar': (COLOR_OCEAN, True, (838,36)),
 }
 
-UNALIGNED = [ 'spa', 'por', 'naf', 'tun', 'hol', 'bel', 'nwy', 'swe', 'den', 'rum', 'bul', 'ser', 'alb', 'gre' ]
-DEFAULT_ENGLAND = [ 'iri', 'cly', 'yor', 'lon', 'wal', 'lvp', 'edi' ]
+UNALIGNED = [ 'spa', 'por', 'naf', 'tun', 'hol', 'bel', 'nor', 'swe', 'den', 'rum', 'bul', 'ser', 'alb', 'gre' ]
+DEFAULT_ENGLAND = [ 'cly', 'yor', 'lon', 'wal', 'lvp', 'edi' ]
 DEFAULT_FRANCE = [ 'bre', 'par', 'bur', 'pic', 'gas', 'mar' ]
 DEFAULT_GERMANY = [ 'kie', 'ber', 'pru', 'sil', 'mun', 'ruh' ]
 DEFAULT_AUSTRIA = [ 'boh', 'vie', 'tri', 'bud', 'gal', 'trl' ]
