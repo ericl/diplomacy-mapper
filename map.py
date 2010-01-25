@@ -192,14 +192,24 @@ support = {}
 def disable_symbols():
     move_signs[0] = False
 
-def assert_army_can_go(loc):
+def check_army_can_go(loc):
     if not is_land(loc):
         print "An army cannot be on the ocean '%s'." % loc
         raise SystemExit
 
-def assert_fleet_can_go(loc):
+def check_fleet_can_go(loc):
     if not is_coast_or_sea(loc):
         print "A fleet cannot be on '%s', which is landlocked." % loc
+        raise SystemExit
+
+def check_army_can_support(loc):
+    if not is_land(loc) and not is_special(loc):
+        print "An army cannot support the ocean '%s'." % loc
+        raise SystemExit
+
+def check_fleet_can_support(loc):
+    if not is_coast_or_sea(loc) and not is_special(loc):
+        print "A fleet cannot support '%s', which is landlocked." % loc
         raise SystemExit
 
 def lcheck(f):
@@ -226,7 +236,9 @@ def enhance(loc):
 
 def occupy(loc):
     loc = loc[:3]
-    assert loc not in occupied, "You have already placed a unit at '%s'" % loc
+    if loc in occupied:
+        print "You have already placed a unit at '%s'" % loc
+        raise SystemExit
     occupied.add(loc)
 
 def midpoint(a, b):
@@ -237,7 +249,9 @@ def unit_coords(t):
     return (a[0]+13, a[1]+8)
 
 def set_color(t, color):
-    assert_army_can_go(t), "Cannot set color of the ocean '%s'" % t
+    if not is_land(t):
+        print "Cannot set color of the ocean '%s'" % t
+        raise SystemExit
     x = DIP[t]
     init[x[INDEX_COLOR]] = color
 
@@ -252,20 +266,20 @@ def set(t, nation):
 
 @lcheck
 def army_hold(t, nation):
-    assert_army_can_go(t)
+    check_army_can_go(t)
     armies.append((t, nation))
     occupy(t)
 
 @lcheck
 def army_create(t, nation):
-    assert_army_can_go(t)
+    check_army_can_go(t)
     create_army.append(t)
     armies.append((t, nation))
     occupy(t)
 
 @lcheck
 def fleet_create(t, nation):
-    assert_fleet_can_go(t)
+    check_fleet_can_go(t)
     create_fleet.append(t)
     fleet_hold(t, nation)
 
@@ -275,8 +289,8 @@ def disband(t):
 
 @lcheck
 def fleet_support_move(t, other, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_support(t2)
     enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
@@ -287,9 +301,9 @@ def fleet_support_move(t, other, t2, nation):
 
 @lcheck
 def fleet_convoy(t, other, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(other)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_go(other)
+    check_fleet_can_support(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
     mp = midpoint(other, dest)
@@ -300,8 +314,8 @@ def fleet_convoy(t, other, t2, nation):
 
 @lcheck
 def army_support_move(t, other, t2, nation):
-    assert_army_can_go(t)
-    assert_army_can_go(t2)
+    check_army_can_go(t)
+    check_army_can_support(t2)
     enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
@@ -312,8 +326,8 @@ def army_support_move(t, other, t2, nation):
 
 @lcheck
 def fleet_retreat(t, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
@@ -321,8 +335,8 @@ def fleet_retreat(t, t2, nation):
 
 @lcheck
 def army_retreat(t, t2, nation):
-    assert_army_can_go(t)
-    assert_army_can_go(t2)
+    check_army_can_go(t)
+    check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
@@ -330,8 +344,8 @@ def army_retreat(t, t2, nation):
 
 @lcheck
 def fleet_support_hold(t, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_support(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
@@ -339,8 +353,8 @@ def fleet_support_hold(t, t2, nation):
 
 @lcheck
 def army_support_hold(t, t2, nation):
-    assert_army_can_go(t)
-    assert_army_can_go(t2)
+    check_army_can_go(t)
+    check_army_can_support(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
@@ -348,8 +362,8 @@ def army_support_hold(t, t2, nation):
 
 @lcheck
 def army_move(t, t2, nation):
-    assert_army_can_go(t)
-    assert_army_can_go(t2)
+    check_army_can_go(t)
+    check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -357,8 +371,8 @@ def army_move(t, t2, nation):
 
 @lcheck
 def fleet_move(t, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -366,8 +380,8 @@ def fleet_move(t, t2, nation):
 
 @lcheck
 def fleet_move_failed(t, t2, nation):
-    assert_fleet_can_go(t)
-    assert_fleet_can_go(t2)
+    check_fleet_can_go(t)
+    check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -376,8 +390,8 @@ def fleet_move_failed(t, t2, nation):
 
 @lcheck
 def army_move_failed(t, t2, nation):
-    assert_army_can_go(t)
-    assert_army_can_go(t2)
+    check_army_can_go(t)
+    check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -386,11 +400,9 @@ def army_move_failed(t, t2, nation):
 
 @lcheck
 def fleet_hold(t, nation):
-    assert_fleet_can_go(t)
+    check_fleet_can_go(t)
     fleets.append((t, nation))
     occupy(t)
-    if len(t) < 4:
-        assert ('%s_nc' % t) not in DIP, 'You need to specify the coast ([loc]_sc or [loc]_nc)'
 
 for t in UNALIGNED:
     set_color(t, COLOR_NEUTRAL)

@@ -17,26 +17,30 @@ COLOR_FRANCE = (121,175,198)
 COLOR_ITALY = (164,196,153)
 LAND = 0x1 << 1
 SEA = 0x1 << 2
+SPECIAL = 0x1 << 3
 
 def is_land(loc):
-    return DIP[loc][INDEX_TYPEMASK] & LAND > 0
+    return DIP[loc][INDEX_TYPEMASK] & LAND
 
 def is_coast_or_sea(loc):
-    return DIP[loc][INDEX_TYPEMASK] & SEA > 0
+    return DIP[loc][INDEX_TYPEMASK] & SEA
+
+def is_special(loc):
+    return DIP[loc][INDEX_TYPEMASK] & SPECIAL
 
 DIP = {
-    'spa_nc': ((250,0,0), LAND | SEA, (138,651)),
-    'spa_sc': ((250,0,0), LAND | SEA, (188,836)),
-    'bul_nc': ((90,0,0), LAND | SEA, (788,746)),
-    'bul_sc': ((90,0,0), LAND | SEA, (740,818)),
-    'stp_nc': ((0,200,0), LAND | SEA, (922,88)),
-    'stp_sc': ((0,200,0), LAND | SEA, (754,324)),
-    'spa': ((250,0,0), LAND, (190,754)),
+    'spa_nc': ((250,0,0), SEA | SPECIAL, (138,651)),
+    'spa_sc': ((250,0,0), SEA | SPECIAL, (188,836)),
+    'bul_nc': ((90,0,0), SEA | SPECIAL, (788,746)),
+    'bul_sc': ((90,0,0), SEA | SPECIAL, (740,818)),
+    'stp_nc': ((0,200,0), SEA | SPECIAL, (922,88)),
+    'stp_sc': ((0,200,0), SEA | SPECIAL, (754,324)),
+    'spa': ((250,0,0), LAND | SPECIAL, (190,754)),
     'por': ((0,0,50), LAND | SEA, (82,746)),
     'naf': ((0,0,60), LAND | SEA, (192,931)),
     'tun': ((0,0,70), LAND | SEA, (412,936)),
     'gre': ((0,0,130), LAND | SEA, (679,873)),
-    'bul': ((90,0,0), LAND, (729,762)),
+    'bul': ((90,0,0), LAND | SPECIAL, (729,762)),
     'alb': ((80,0,0), LAND | SEA, (635,812)),
     'ser': ((70,0,0), LAND, (650,773)),
     'rum': ((100,0,0), LAND | SEA, (766,706)),
@@ -55,7 +59,7 @@ DIP = {
     'ukr': ((0,170,0), LAND, (765,565)),
     'lvn': ((0,160,0), LAND | SEA, (709,432)),
     'mos': ((0,190,0), LAND, (884,426)),
-    'stp': ((0,200,0), LAND | SEA, (966,202)),
+    'stp': ((0,200,0), LAND | SPECIAL, (966,202)),
     'fin': ((0,150,0), LAND | SEA, (695,226)),
     'swe': ((0,140,0), LAND | SEA, (577,257)),
     'nor': ((0,130,0), LAND | SEA, (510,266)),
