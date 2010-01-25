@@ -25,6 +25,8 @@ Example command sequence:
 All location and nation names can be found in 'data.py'.
 
 List of commands:
+	
+	disable_symbols()
 
 	set(loc, NATION)
 	disband(loc)

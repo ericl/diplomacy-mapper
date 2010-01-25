@@ -6,6 +6,9 @@ from data import *
 
 import math
 
+std_width = 3
+std_length = 20
+
 def line(draw, c, width=1, fill='#ffffff'):
     x = c[2] - c[0]
     y = c[3] - c[1]
@@ -17,15 +20,15 @@ def line(draw, c, width=1, fill='#ffffff'):
         draw.line((c[0]+dx, c[1]+dy, c[2]+dx, c[3]+dy), width=1, fill=fill)
 
 def arrow(img, oldcoord, coord, color, noarrow=False, extrawidth=0):
-    w = 3 + extrawidth
+    w = std_width + extrawidth
     draw = ImageDraw.Draw(img)
     x = coord[0] - oldcoord[0]
     y = coord[1] - oldcoord[1]
     length = math.sqrt(x**2 + y**2)
     ux = x / length
     uy = y / length
-    x = ux * -20
-    y = uy * -20
+    x = ux * -std_length
+    y = uy * -std_length
     coord = (coord[0] - ux*3, coord[1] - uy*3)
     x1 = math.cos(.5) * x - math.sin(.5) * y
     y1 = math.sin(.5) * x + math.cos(.5) * y
@@ -38,38 +41,42 @@ def arrow(img, oldcoord, coord, color, noarrow=False, extrawidth=0):
 
 def Tarrow(img, oldcoord, coord, color):
     draw = ImageDraw.Draw(img)
-    line(draw, oldcoord + coord, width=3, fill=color)
+    line(draw, oldcoord + coord, width=std_width, fill=color)
     x = coord[0] - oldcoord[0]
     y = coord[1] - oldcoord[1]
     mx, my = midpoint(coord, (midpoint(coord, oldcoord)))
-    length = math.sqrt(x**2 + y**2) / 10
-    x /= -length
-    y /= -length
+    length = math.sqrt(x**2 + y**2)
+    ux = x / length
+    uy = y / length
+    x = ux * -std_length/2
+    y = uy * -std_length/2
     x1 = math.cos(1.57) * x - math.sin(1.57) * y
     y1 = math.sin(1.57) * x + math.cos(1.57) * y
     x2 = math.cos(-1.57) * x - math.sin(-1.57) * y
     y2 = math.sin(-1.57) * x + math.cos(-1.57) * y
     orig = (x+mx, y+my)
-    line(draw, orig + (x1+orig[0], y1+orig[1]), width=3, fill=color)
-    line(draw, orig + (x2+orig[0], y2+orig[1]), width=3, fill=color)
+    line(draw, orig + (x1+orig[0], y1+orig[1]), width=std_width, fill=color)
+    line(draw, orig + (x2+orig[0], y2+orig[1]), width=std_width, fill=color)
 
 def drawX(img, oldcoord, coord, color):
     draw = ImageDraw.Draw(img)
     x = coord[0] - oldcoord[0]
     y = coord[1] - oldcoord[1]
     mx, my = midpoint(coord, oldcoord)
-    length = math.sqrt(x**2 + y**2) / 12
-    x /= -length
-    y /= -length
+    length = math.sqrt(x**2 + y**2)
+    ux = x / length
+    uy = y / length
+    x = ux * -std_length/2
+    y = uy * -std_length/2
     x1 = math.cos(.785) * x - math.sin(.785) * y
     y1 = math.sin(.785) * x + math.cos(.785) * y
     x2 = math.cos(-.785) * x - math.sin(-.785) * y
     y2 = math.sin(-.785) * x + math.cos(-.785) * y
     orig = (x+mx, y+my)
-    line(draw, orig + (x1+orig[0], y1+orig[1]), width=5, fill=color)
-    line(draw, orig + (x2+orig[0], y2+orig[1]), width=5, fill=color)
-    line(draw, orig + (-x1+orig[0], -y1+orig[1]), width=5, fill=color)
-    line(draw, orig + (-x2+orig[0], -y2+orig[1]), width=5, fill=color)
+    line(draw, orig + (x1+orig[0], y1+orig[1]), width=2+std_width, fill=color)
+    line(draw, orig + (x2+orig[0], y2+orig[1]), width=2+std_width, fill=color)
+    line(draw, orig + (-x1+orig[0], -y1+orig[1]), width=2+std_width, fill=color)
+    line(draw, orig + (-x2+orig[0], -y2+orig[1]), width=2+std_width, fill=color)
 
 def write_substitution_image(file, out, table):
     img = Image.open(file).convert('RGBA')
@@ -93,35 +100,36 @@ def write_substitution_image(file, out, table):
         else:
             buf.append(color)
     img.putdata(buf)
-    print 'drawing movements...'
-    for line in yellow:
-        oldcoord = line[0]
-        coord = line[1]
-        arrow(img, oldcoord, coord, '#fcd116')
-    for line in blue:
-        oldcoord = line[0]
-        coord = line[1]
-        arrow(img, oldcoord, coord, '#22aadd', noarrow=True)
-    for line in lines:
-        oldcoord = line[0]
-        coord = line[1]
-        s = support.get(line[2], 0)
-        arrow(img, oldcoord, coord, '#aa0000', extrawidth=s)
-    for line in green:
-        oldcoord = line[0]
-        coord = line[1]
-        Tarrow(img, oldcoord, coord, '#00dd00')
-    for line in purple:
-        oldcoord = line[0]
-        coord = line[1]
-        arrow(img, oldcoord, coord, '#ff00ff')
-    for x in failed:
-        drawX(img, x[0], x[1], '#aa0000')
-    for dis in ldisband:
-        x = Image.open('data/dis.png').convert('RGBA')
-        coord = DIP[dis][INDEX_COORD]
-        coord = (coord[0]+10, coord[1])
-        img.paste(x, coord, x)
+    if move_signs[0]:
+        print 'drawing movements...'
+        for line in yellow:
+            oldcoord = line[0]
+            coord = line[1]
+            arrow(img, oldcoord, coord, '#fcd116')
+        for line in blue:
+            oldcoord = line[0]
+            coord = line[1]
+            arrow(img, oldcoord, coord, '#22aadd', noarrow=True)
+        for line in lines:
+            oldcoord = line[0]
+            coord = line[1]
+            s = support.get(line[2], 0)
+            arrow(img, oldcoord, coord, '#aa0000', extrawidth=s)
+        for line in green:
+            oldcoord = line[0]
+            coord = line[1]
+            Tarrow(img, oldcoord, coord, '#00dd00')
+        for line in purple:
+            oldcoord = line[0]
+            coord = line[1]
+            arrow(img, oldcoord, coord, '#ff00ff')
+        for x in failed:
+            drawX(img, x[0], x[1], '#aa0000')
+        for dis in ldisband:
+            x = Image.open('data/dis.png').convert('RGBA')
+            coord = DIP[dis][INDEX_COORD]
+            coord = (coord[0]+10, coord[1])
+            img.paste(x, coord, x)
     print 'drawing units...'
     for army in armies:
         coord = DIP[army[0]][INDEX_COORD]
@@ -141,14 +149,15 @@ def write_substitution_image(file, out, table):
             img.paste(outline, (coord[0], coord[1]-15), outline)
             img.paste(fleet[1][1], (coord[0]+1, coord[1]-14), mask)
         img.paste(unit_img, coord, unit_img)
-    for loc in create_army:
-        star = Image.open('data/star.png').convert('RGBA')
-        coord = DIP[loc][INDEX_COORD]
-        img.paste(star, (coord[0]+15, coord[1]-13), star)
-    for loc in create_fleet:
-        star = Image.open('data/star.png').convert('RGBA')
-        coord = DIP[loc][INDEX_COORD]
-        img.paste(star, (coord[0]+15, coord[1]-8), star)
+    if move_signs[0]:
+        for loc in create_army:
+            star = Image.open('data/star.png').convert('RGBA')
+            coord = DIP[loc][INDEX_COORD]
+            img.paste(star, (coord[0]+15, coord[1]-13), star)
+        for loc in create_fleet:
+            star = Image.open('data/star.png').convert('RGBA')
+            coord = DIP[loc][INDEX_COORD]
+            img.paste(star, (coord[0]+15, coord[1]-8), star)
     text = Image.open(IMAGE_NAMES).convert('RGBA')
     img.paste(text, text)
     img.save(out, 'PNG')
@@ -164,6 +173,7 @@ N_COLOR = 1
 N_NAME = 0
 
 init = {}
+move_signs = [True]
 armies = []
 create_army = []
 create_fleet = []
@@ -178,6 +188,9 @@ land = {}
 occupied = set()
 ldisband = []
 support = {}
+
+def disable_symbols():
+    move_signs[0] = False
 
 def lcheck(f):
     def g(*args):
