@@ -192,6 +192,16 @@ support = {}
 def disable_symbols():
     move_signs[0] = False
 
+def assert_army_can_go(loc):
+    if not is_land(loc):
+        print "An army cannot be on the ocean '%s'." % loc
+        raise SystemExit
+
+def assert_fleet_can_go(loc):
+    if not is_coast_or_sea(loc):
+        print "A fleet cannot be on '%s', which is landlocked." % loc
+        raise SystemExit
+
 def lcheck(f):
     def g(*args):
         for loc in args:
@@ -227,8 +237,8 @@ def unit_coords(t):
     return (a[0]+13, a[1]+8)
 
 def set_color(t, color):
+    assert_army_can_go(t), "Cannot set color of the ocean '%s'" % t
     x = DIP[t]
-    assert not x[INDEX_OCEAN], "Cannot set color the ocean '%s'" % t
     init[x[INDEX_COLOR]] = color
 
 def get(t):
@@ -242,17 +252,20 @@ def set(t, nation):
 
 @lcheck
 def army_hold(t, nation):
+    assert_army_can_go(t)
     armies.append((t, nation))
     occupy(t)
 
 @lcheck
 def army_create(t, nation):
+    assert_army_can_go(t)
     create_army.append(t)
     armies.append((t, nation))
     occupy(t)
 
 @lcheck
 def fleet_create(t, nation):
+    assert_fleet_can_go(t)
     create_fleet.append(t)
     fleet_hold(t, nation)
 
@@ -262,6 +275,8 @@ def disband(t):
 
 @lcheck
 def fleet_support_move(t, other, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(t2)
     enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
@@ -272,6 +287,9 @@ def fleet_support_move(t, other, t2, nation):
 
 @lcheck
 def fleet_convoy(t, other, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(other)
+    assert_fleet_can_go(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
     mp = midpoint(other, dest)
@@ -282,6 +300,8 @@ def fleet_convoy(t, other, t2, nation):
 
 @lcheck
 def army_support_move(t, other, t2, nation):
+    assert_army_can_go(t)
+    assert_army_can_go(t2)
     enhance(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)
@@ -292,6 +312,8 @@ def army_support_move(t, other, t2, nation):
 
 @lcheck
 def fleet_retreat(t, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
@@ -299,6 +321,8 @@ def fleet_retreat(t, t2, nation):
 
 @lcheck
 def army_retreat(t, t2, nation):
+    assert_army_can_go(t)
+    assert_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
@@ -306,6 +330,8 @@ def army_retreat(t, t2, nation):
 
 @lcheck
 def fleet_support_hold(t, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
@@ -313,6 +339,8 @@ def fleet_support_hold(t, t2, nation):
 
 @lcheck
 def army_support_hold(t, t2, nation):
+    assert_army_can_go(t)
+    assert_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
@@ -320,6 +348,8 @@ def army_support_hold(t, t2, nation):
 
 @lcheck
 def army_move(t, t2, nation):
+    assert_army_can_go(t)
+    assert_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -327,6 +357,8 @@ def army_move(t, t2, nation):
 
 @lcheck
 def fleet_move(t, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -334,6 +366,8 @@ def fleet_move(t, t2, nation):
 
 @lcheck
 def fleet_move_failed(t, t2, nation):
+    assert_fleet_can_go(t)
+    assert_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -342,6 +376,8 @@ def fleet_move_failed(t, t2, nation):
 
 @lcheck
 def army_move_failed(t, t2, nation):
+    assert_army_can_go(t)
+    assert_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
@@ -350,6 +386,7 @@ def army_move_failed(t, t2, nation):
 
 @lcheck
 def fleet_hold(t, nation):
+    assert_fleet_can_go(t)
     fleets.append((t, nation))
     occupy(t)
     if len(t) < 4:
