@@ -7,5 +7,5 @@
 .hidden
 .project
 \#*#
-out.png
+*out.png
 render.py

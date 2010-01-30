@@ -302,7 +302,7 @@ def fleet_support_move(t, other, t2, nation):
 @lcheck
 def fleet_convoy(t, other, t2, nation):
     check_fleet_can_go(t)
-    check_fleet_can_go(other)
+    check_fleet_can_support(other)
     check_fleet_can_support(t2)
     other = unit_coords(other)
     dest = unit_coords(t2)

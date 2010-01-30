@@ -93,6 +93,7 @@ DIP = {
     'cly': ((0,0,190), LAND | SEA, (297,331)),
     # begin oceans
     'iri': ((0,0,170), SEA, (200,477)),
+    'eng': (COLOR_OCEAN, SEA, (282, 526)),
     'bla': (COLOR_OCEAN, SEA, (917,733)),
     'nao': (COLOR_OCEAN, SEA, (104,217)),
     'eas': (COLOR_OCEAN, SEA, (848,961)),
