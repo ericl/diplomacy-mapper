@@ -6,8 +6,14 @@ from data import *
 
 import math
 
+class Context:
+    nation = None
+
 std_width = 3
 std_length = 20
+
+def context(n):
+    Context.nation = n
 
 def line(draw, c, width=1, fill='#ffffff'):
     x = c[2] - c[0]
@@ -125,13 +131,20 @@ def write_substitution_image(file, out, table):
             arrow(img, oldcoord, coord, '#ff00ff')
         for x in failed:
             drawX(img, x[0], x[1], '#aa0000')
-        for dis in ldisband:
+        for dis in ldisplace:
             x = Image.open('data/dis.png').convert('RGBA')
             coord = DIP[dis][INDEX_COORD]
             coord = (coord[0]+10, coord[1])
             img.paste(x, coord, x)
+        for dis in ldestroy:
+            x = Image.open('data/dis.png').convert('RGBA')
+            coord = DIP[dis][INDEX_COORD]
+            coord = (coord[0], coord[1])
+            img.paste(x, coord, x)
     print 'drawing units...'
     for army in armies:
+        if army[0] in ldestroy and destroy_data[army[0]] == army[1]:
+            continue
         coord = DIP[army[0]][INDEX_COORD]
         land_owner = get(army[0])
         army_owner = army[1][0]
@@ -141,6 +154,8 @@ def write_substitution_image(file, out, table):
             img.paste(army[1][1], (coord[0]+1, coord[1]-14), mask)
         img.paste(unit_img, coord, unit_img)
     for fleet in fleets:
+        if fleet[0] in ldestroy and destroy_data[fleet[0]] == fleet[1]:
+            continue
         coord = DIP[fleet[0]][INDEX_COORD]
         land_owner = get(fleet[0])
         fleet_owner = fleet[1][0]
@@ -186,7 +201,9 @@ yellow = []
 green = []
 land = {}
 occupied = set()
-ldisband = []
+ldisplace = []
+ldestroy = []
+destroy_data = {}
 support = {}
 
 def disable_symbols():
@@ -259,36 +276,41 @@ def get(t):
     return land[t][0] if t in land else None
 
 @lcheck
-def set(t, nation):
+def set(t):
     x = DIP[t]
-    land[t] = nation
-    set_color(t, nation[N_COLOR])
+    land[t] = Context.nation
+    set_color(t, Context.nation[N_COLOR])
 
 @lcheck
-def army_hold(t, nation):
+def army_hold(t):
     check_army_can_go(t)
-    armies.append((t, nation))
+    armies.append((t, Context.nation))
     occupy(t)
 
 @lcheck
-def army_create(t, nation):
+def army_create(t):
     check_army_can_go(t)
     create_army.append(t)
-    armies.append((t, nation))
+    armies.append((t, Context.nation))
     occupy(t)
 
 @lcheck
-def fleet_create(t, nation):
+def fleet_create(t):
     check_fleet_can_go(t)
     create_fleet.append(t)
-    fleet_hold(t, nation)
+    fleet_hold(t)
 
 @lcheck
-def disband(t):
-    ldisband.append(t)
+def displace(t):
+    ldisplace.append(t)
 
 @lcheck
-def fleet_support_move(t, other, t2, nation):
+def destroy(t):
+    ldestroy.append(t)
+    destroy_data[t] = Context.nation
+
+@lcheck
+def fleet_support_move(t, other, t2):
     check_fleet_can_go(t)
     check_fleet_can_support(t2)
     enhance(t2)
@@ -297,10 +319,10 @@ def fleet_support_move(t, other, t2, nation):
     dest = midpoint(dest, midpoint(other, dest))
     orig = unit_coords(t)
     yellow.append((orig, dest))
-    fleet_hold(t, nation)
+    fleet_hold(t)
 
 @lcheck
-def fleet_convoy(t, other, t2, nation):
+def fleet_convoy(t, other, t2):
     check_fleet_can_go(t)
     check_fleet_can_support(other)
     check_fleet_can_support(t2)
@@ -310,10 +332,10 @@ def fleet_convoy(t, other, t2, nation):
     dest = midpoint(mp, midpoint(dest, midpoint(other, dest)))
     orig = unit_coords(t)
     blue.append((orig, dest))
-    fleet_hold(t, nation)
+    fleet_hold(t)
 
 @lcheck
-def army_support_move(t, other, t2, nation):
+def army_support_move(t, other, t2):
     check_army_can_go(t)
     check_army_can_support(t2)
     enhance(t2)
@@ -322,104 +344,111 @@ def army_support_move(t, other, t2, nation):
     dest = midpoint(dest, midpoint(other, dest))
     orig = unit_coords(t)
     yellow.append((orig, dest))
-    army_hold(t, nation)
+    army_hold(t)
 
 @lcheck
-def fleet_retreat(t, t2, nation):
+def fleet_retreat(t, t2):
     check_fleet_can_go(t)
     check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
-    fleet_hold(t2, nation)
+    fleet_hold(t2)
 
 @lcheck
-def army_retreat(t, t2, nation):
+def army_retreat(t, t2):
     check_army_can_go(t)
     check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     purple.append((orig, dest))
-    army_hold(t2, nation)
+    army_hold(t2)
 
 @lcheck
-def fleet_support_hold(t, t2, nation):
+def fleet_support_hold(t, t2):
     check_fleet_can_go(t)
     check_fleet_can_support(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
-    fleet_hold(t, nation)
+    fleet_hold(t)
 
 @lcheck
-def army_support_hold(t, t2, nation):
+def army_support_hold(t, t2):
     check_army_can_go(t)
     check_army_can_support(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     green.append((orig, dest))
-    army_hold(t, nation)
+    army_hold(t)
 
 @lcheck
-def army_move(t, t2, nation):
+def army_move(t, t2):
     check_army_can_go(t)
     check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
-    army_hold(t2, nation)
+    army_hold(t2)
 
 @lcheck
-def fleet_move(t, t2, nation):
+def fleet_move(t, t2):
     check_fleet_can_go(t)
     check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
-    fleet_hold(t2, nation)
+    fleet_hold(t2)
 
 @lcheck
-def fleet_move_failed(t, t2, nation):
+def fleet_move_failed(t, t2):
     check_fleet_can_go(t)
     check_fleet_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
     failed.append((orig, dest, t2))
-    fleet_hold(t, nation)
+    fleet_hold(t)
 
 @lcheck
-def army_move_failed(t, t2, nation):
+def army_move_failed(t, t2):
     check_army_can_go(t)
     check_army_can_go(t2)
     dest = unit_coords(t2)
     orig = unit_coords(t)
     lines.append((orig, dest, t2))
     failed.append((orig, dest, t2))
-    army_hold(t, nation)
+    army_hold(t)
 
 @lcheck
-def fleet_hold(t, nation):
+def fleet_hold(t):
     check_fleet_can_go(t)
-    fleets.append((t, nation))
+    fleets.append((t, Context.nation))
     occupy(t)
 
 for t in UNALIGNED:
     set_color(t, COLOR_NEUTRAL)
 for t in DEFAULT_ENGLAND:
-    set(t, ENGLAND)
+    context(ENGLAND)
+    set(t)
 for t in DEFAULT_GERMANY:
-    set(t, GERMANY)
+    context(GERMANY)
+    set(t)
 for t in DEFAULT_FRANCE:
-    set(t, FRANCE)
+    context(FRANCE)
+    set(t)
 for t in DEFAULT_ITALY:
-    set(t, ITALY)
+    context(ITALY)
+    set(t)
 for t in DEFAULT_AUSTRIA:
-    set(t, AUSTRIA)
+    context(AUSTRIA)
+    set(t)
 for t in DEFAULT_TURKEY:
-    set(t, TURKEY)
+    context(TURKEY)
+    set(t)
 for t in DEFAULT_RUSSIA:
-    set(t, RUSSIA)
+    context(RUSSIA)
+    set(t)
 
 def done():
     write_substitution_image(IMAGE_MAP, 'out.png', init)

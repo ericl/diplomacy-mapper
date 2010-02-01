@@ -15,35 +15,53 @@ Usage:
 
 Example command sequence:
 
-	fleet_move('nor', 'nwy', ENGLAND)
-	set('nwy', ENGLAND)
-	fleet_move_failed('nth', 'bel', ENGLAND)
-	army_hold('yor', ENGLAND)
-	fleet_support_hold('iri', 'nao', ENGLAND)
-	fleet_support_hold('nao', 'iri', ENGLAND)
+    context(ENGLAND)
+	fleet_move_failed('nth', 'bel')
+	army_hold('yor')
+	fleet_move('nor', 'nwy')
+	set('nwy')
+	destroy('nwy')
+
+    context(ITALY)
+	fleet_support_hold('iri', 'nao')
+	fleet_support_hold('nao', 'iri')
 	
 All location and nation names can be found in 'data.py'.
 
 List of commands:
 	
 	disable_symbols()
+        do not draw arrows, etc
 
-	set(loc, NATION)
-	disband(loc)
+    context(NATION)
+        set further commands to apply to NATION
 
-	fleet_create(loc, NATION)
-	fleet_hold(loc, NATION)
-	fleet_move(loc, dest, NATION)
-	fleet_retreat(loc, dest, NATION)
-	fleet_move_failed(loc, dest, NATION)
-	fleet_support_hold(loc, dest, NATION)
-	fleet_support_move(loc, attacker, dest, NATION)
-	fleet_convoy(loc, attacker, dest, NATION)
+	set(loc)
+        mark a location as owned by a nation
 
-	army_create(loc, NATION)
-	army_hold(loc, NATION)
-	army_move(loc, dest, NATION)
-	army_retreat(loc, dest, NATION)
-	army_move_failed(loc, dest, NATION)
-	army_support_hold(loc, dest, NATION)
-	army_support_move(loc, attacker, dest, NATION)
+	displace(loc)
+        mark pending unit destruction/retreat
+		another unit of a different nation may be present at the loc
+
+	destroy(loc)
+        mark a unit destroyed/disbanded at location
+		used in conjunction with a move command with destination at loc
+		another unit of a different nation may be present at the loc
+
+	fleet_create(loc)
+	fleet_hold(loc)
+	fleet_move(loc, dest)
+	fleet_retreat(loc, dest)
+	fleet_move_failed(loc, dest)
+	fleet_support_hold(loc, dest)
+	fleet_support_move(loc, attacker, dest)
+	fleet_convoy(loc, attacker, dest)
+
+	army_create(loc)
+	army_hold(loc)
+	army_move(loc, dest)
+	army_retreat(loc, dest)
+	army_move_failed(loc, dest)
+	army_support_hold(loc, dest)
+	army_support_move(loc, attacker, dest)
+
