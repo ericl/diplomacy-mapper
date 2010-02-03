@@ -39,7 +39,7 @@ List of commands:
 	set(loc)
         mark a location as owned by a nation
 
-	displace(loc)
+	dislodge(loc)
         mark pending unit destruction/retreat
 		another unit of a different nation may be present at the loc
 

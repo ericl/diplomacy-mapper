@@ -131,7 +131,7 @@ def write_substitution_image(file, out, table):
             arrow(img, oldcoord, coord, '#ff00ff')
         for x in failed:
             drawX(img, x[0], x[1], '#aa0000')
-        for dis in ldisplace:
+        for dis in ldislodge:
             x = Image.open('data/dis.png').convert('RGBA')
             coord = DIP[dis][INDEX_COORD]
             coord = (coord[0]+10, coord[1])
@@ -201,7 +201,7 @@ yellow = []
 green = []
 land = {}
 occupied = set()
-ldisplace = []
+ldislodge = []
 ldestroy = []
 destroy_data = {}
 support = {}
@@ -301,8 +301,8 @@ def fleet_create(t):
     fleet_hold(t)
 
 @lcheck
-def displace(t):
-    ldisplace.append(t)
+def dislodge(t):
+    ldislodge.append(t)
 
 @lcheck
 def destroy(t):
