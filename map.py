@@ -143,7 +143,7 @@ def write_substitution_image(file, out, table):
             img.paste(x, coord, x)
     print 'drawing units...'
     for army in armies:
-        if army[0] in ldestroy and destroy_data[army[0]] == army[1]:
+        if (army[0] in ldestroy or army[0] in ldislodge) and destroy_data[army[0]] == army[1]:
             continue
         coord = DIP[army[0]][INDEX_COORD]
         land_owner = get(army[0])
@@ -154,7 +154,7 @@ def write_substitution_image(file, out, table):
             img.paste(army[1][1], (coord[0]+1, coord[1]-14), mask)
         img.paste(unit_img, coord, unit_img)
     for fleet in fleets:
-        if fleet[0] in ldestroy and destroy_data[fleet[0]] == fleet[1]:
+        if (fleet[0] in ldestroy or fleet[0] in ldislodge) and destroy_data[fleet[0]] == fleet[1]:
             continue
         coord = DIP[fleet[0]][INDEX_COORD]
         land_owner = get(fleet[0])
@@ -251,12 +251,22 @@ def enhance(loc):
     else:
         support[loc] = 1
 
+duplicates = []
 def occupy(loc):
     loc = loc[:3]
     if loc in occupied:
-        print "You have already placed a unit at '%s'" % loc
+        duplicates.append(loc)
+    else:
+        occupied.add(loc)
+
+def assert_one_unit_per_loc():
+    x = False
+    for loc in duplicates:
+        if loc not in ldislodge:
+            print "You have already placed a unit at '%s'" % loc
+            x = True
+    if x:
         raise SystemExit
-    occupied.add(loc)
 
 def midpoint(a, b):
     return ((a[0]+b[0])/2, (a[1]+b[1])/2)
@@ -303,6 +313,7 @@ def fleet_create(t):
 @lcheck
 def dislodge(t):
     ldislodge.append(t)
+    destroy_data[t] = Context.nation
 
 @lcheck
 def destroy(t):
@@ -451,4 +462,5 @@ for t in DEFAULT_RUSSIA:
     set(t)
 
 def done():
+    assert_one_unit_per_loc()
     write_substitution_image(IMAGE_MAP, 'out.png', init)
