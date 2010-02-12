@@ -15,14 +15,14 @@ Usage:
 
 Example command sequence:
 
-    context(ENGLAND)
+	context(ENGLAND)
 	fleet_move_failed('nth', 'bel')
 	army_hold('yor')
 	fleet_move('nor', 'nwy')
 	set('nwy')
 	destroy('nwy')
 
-    context(ITALY)
+	context(ITALY)
 	fleet_support_hold('iri', 'nao')
 	fleet_support_hold('nao', 'iri')
 	
@@ -33,7 +33,7 @@ List of commands:
 	disable_symbols()
         do not draw arrows, etc
 
-    context(NATION)
+	context(NATION)
         set further commands to apply to NATION
 
 	set(loc)
